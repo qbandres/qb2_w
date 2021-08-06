@@ -202,11 +202,11 @@ class Masterelect:
             k += 1
 
         #SEPARAMOS LOS PESOS DEL AVANCE
-        d_cablem = pd.DataFrame(columns=["Service", "Cable_Code","CANT",'RATIO', 'HHGan'])
+        d_cablem = pd.DataFrame(columns=["sistema1", "sistema2","CANT",'RATIO', 'HHGan'])
 
         k=0
         for i in lisQ:
-            globals()["df_" + str(k+1)]= self.df[["Service", "Cable_Code",'CANT', "RATIO", lisQ[k], lisCQ[k], lisEQ[k]]]
+            globals()["df_" + str(k+1)]= self.df[["sistema1", "sistema2",'CANT', "RATIO", lisQ[k], lisCQ[k], lisEQ[k]]]
             globals()["df_" + str(k+1)] = globals()["df_" + str(k+1)].dropna(subset=[lisQ[k]])
             globals()["df_" + str(k + 1)] = globals()["df_" + str(k + 1)].rename(columns={lisCQ[k]: 'MLPOND', lisQ[k]: 'FECHA', lisEQ[k]: 'HHGan'})
             globals()["df_" + str(k + 1)]['Etapa'] = self.lisNQ[k]
@@ -717,27 +717,36 @@ def import_ELECT():
         ['Service', 'Cable_Code', 'ENGR_LGTH', 'Ubicación', 'RATIO', 'TRASLADO', 'TENDIDO',
          'CONEXIONADO', 'INSPECCION_PRUEBAS', 'PUNCH_LIST']]
 
-    d_cable.rename(columns={'TRASLADO': 'Q1', 'TENDIDO': 'Q2',
+    d_cable.rename(columns={'Service':"sistema1","Cable_Code":"sistema2" ,'TRASLADO': 'Q1', 'TENDIDO': 'Q2',
                             'CONEXIONADO': 'Q3', 'INSPECCION_PRUEBAS': 'Q4', 'PUNCH_LIST': 'Q5', 'ENGR_LGTH': 'CANT'},
                    inplace=True)
 
     nCAB_A, nCAB_B = Masterelect(d_cable, 5, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Tendido',
                             '3-Conexionado', '4-Pruebas', '5-Punch List', '6-xxxx', '2-Tendido').develop()
 
+    
+    nCAB_A['Tipo']="Cable"
+
+    print(nCAB_A)
+    nCAB_A.to_excel("nnn.xlsx")
+    
+
+
     # EPC
     d_EPC= d_EPC[
         ['Sub_area', 'Partida', 'Cantidad', 'ESP', 'RATIO', 'TRASLADO', 'CANALIZACION',
          'SOPORTE_FAB', 'SOPORTE_MON', 'PUNCH_LIST']]
 
-    d_EPC.rename(columns={'TRASLADO': 'Q1', 'CANALIZACION': 'Q2',
+    d_EPC.rename(columns={"Sub_area":'sistema1',"Partida":"sistema2", 'TRASLADO': 'Q1', 'CANALIZACION': 'Q2',
                             'SOPORTE_FAB': 'Q3', 'SOPORTE_MON': 'Q4', 'PUNCH_LIST': 'Q5', 'Cantidad': 'CANT'},
                    inplace=True)
 
     nEPC_A, nEPC_B = Masterelect(d_cable, 5, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Tendido',
                             '3-Conexionado', '4-Pruebas', '5-Punch List', '6-xxxx', '2-Tendido').develop()
 
-    print(d_EPC)
-
+    nEPC_A['Tipo']="EPC"
+    print(nEPC_A)
+    nEPC_A.to_excel('mmm.xlsx')
 
     '''
     dfBulk = pd.read_excel(import_file_path, sheet_name='Bulk')
@@ -863,6 +872,10 @@ def import_ELECT():
     
     '''
 
+    d_totelec=pd.concat([nCAB_A,nEPC_A],axis=0)
+    print(d_totelec)
+    d_totelec.to_excel("ppp.xlsx")
+    
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
 
     f = 1999  # Frequency

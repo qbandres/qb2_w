@@ -1,2 +1,5 @@
-a=int(input('Ingresa numero'))
-print(2*a)
+from os import closerange
+
+
+s="lamina"
+print(s[::-1])
