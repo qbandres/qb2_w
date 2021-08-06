@@ -716,7 +716,8 @@ def import_ELECT():
 
     import_file_path = filedialog.askopenfilename()
     d_cable = pd.read_excel(import_file_path, sheet_name='Cables')  # Importar HHGAN OF CABLES
-    d_EPC = pd.read_excel(import_file_path, sheet_name='EPC')  # Importar HHGAN OF CABLES
+    d_EPC = pd.read_excel(import_file_path, sheet_name='EPC')  # Importar HHGAN OF EPC
+    d_inst = pd.read_excel(import_file_path, sheet_name='Instrumentos')  # Importar HHGAN OF INSTRUMENTOS
 
     # CABLES
     d_cable= d_cable[
@@ -732,9 +733,6 @@ def import_ELECT():
 
     
     nCAB_A['Tipo']="Cable"
-
-    print(nCAB_A)
-    nCAB_A.to_excel("nnn.xlsx")
     
 
 
@@ -747,12 +745,30 @@ def import_ELECT():
                             'SOPORTE_FAB': 'Q3', 'SOPORTE_MON': 'Q4', 'PUNCH_LIST': 'Q5', 'Cantidad': 'CANT'},
                    inplace=True)
 
-    nEPC_A, nEPC_B = Masterelect(d_cable, 5, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Tendido',
+    nEPC_A, nEPC_B = Masterelect(d_EPC, 5, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Tendido',
                             '3-Conexionado', '4-Pruebas', '5-Punch List', '6-xxxx', '2-Tendido').develop()
 
     nEPC_A['Tipo']="EPC"
-    print(nEPC_A)
-    nEPC_A.to_excel('mmm.xlsx')
+
+
+    
+    # INSTRUMENTOS
+    d_inst= d_inst[
+        ['Descri_Equipo', 'Sistema', 'Cantidad', 'ESP', 'RATIO', 'TRASLADO', 'MONTAJE',
+         'NIVELACION', 'PUNCH_LIST']]
+
+    d_inst.rename(columns={"Descri_Equipo":'sistema1',"Sistema":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
+                            'NIVELACION': 'Q3', 'PUNCH_LIST': 'Q4', 'Cantidad': 'CANT'},
+                   inplace=True)
+
+    nINST_A, nINST_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
+                            '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
+
+    nINST_A['Tipo']="INST"
+
+
+
+
 
     '''
     dfBulk = pd.read_excel(import_file_path, sheet_name='Bulk')
@@ -878,7 +894,7 @@ def import_ELECT():
     
     '''
 
-    d_totelec=pd.concat([nCAB_A,nEPC_A],axis=0)
+    d_totelec=pd.concat([nCAB_A,nEPC_A,nINST_A],axis=0)
     print(d_totelec)
     d_totelec.to_excel("ppp.xlsx")
     
