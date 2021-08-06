@@ -973,13 +973,13 @@ Widget(root, d_color['fondo'], 1, 1, 7, 12).letra('Resumen General')
 
 
 ##Creando los botones
-#Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
 Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
 Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
 Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
 Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
-#Widget(root, d_color['boton'], 15, 1, 200, 145).boton('ELECTRICIDAD',import_ELECT)
 Widget(root, d_color['boton'], 15, 1, 200, 175).boton('EXPORTAR',export)
+#Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
+#Widget(root, d_color['boton'], 15, 1, 200, 145).boton('ELECTRICIDAD',import_ELECT)
 
 root.mainloop()
 
