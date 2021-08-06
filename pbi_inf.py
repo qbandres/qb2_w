@@ -700,19 +700,9 @@ def import_PIPING():
 def import_ELECT():
     global mELECT, nELECT, Totcode, pip_person, rest_pip
 
-    Quiebre = {'U_TRASLADO': 0.05, 'U_TENDIDO': 0.05, 'U_EMPLANTILLADO': 0.23, 'U_SOLDADURA': 0.3,
-               'U_REVESTIMIENTO': 0.17,
-               'U_PRUEBA': 0.15, 'U_PUNCH_LIST': 0.05, 'A_TRASLADO': 0.1, 'A_MONTAJE': 0.1, 'A_EMPLANTILLADO': 0.1,
-               'A_SOLDADURA': 0.5,
-               'A_PRUEBA': 0.15, 'A_PUNCH_LIST': 0.05}  # Quiebres Mecanica General
-
-    changQ = {'A_TRASLADO': '1-Traslado', 'A_MONTAJE': '2-Montaje', 'A_EMPLANTILLADO': '3-Emplantillado',
-              'A_SOLDADURA': '4-Soldadura',
-              'A_PRUEBA': '5-Prueba', 'A_PUNCH_LIST': '6-Punch List', 'U_TRASLADO': 'a-Traslado',
-              'U_TENDIDO': 'b-Tendido', 'U_EMPLANTILLADO': 'c_EMPLANTILLADO', 'U_SOLDADURA': 'd-Soldadura',
-              'U_REVESTIMIENTO': 'e-Revestimiento',
-              'U_PRUEBA': 'f-Prueba', 'U_PUNCH_LIST': 'g-Prueba', 'SOPORTES': 'SOPORTES',
-              'APOYO': 'APOYO'}  # Quiebres Piping
+    qgan_alumb = {'Traslado': 0.1, 'Montaje_Conexionado': 0.6, 'Test': 0.2, 'Punch_List': 0.1}  # Quiebres Alumbrado
+    qgan_malla = {'Traslado': 0.1, 'Tendido_Conexionado': 0.7, 'Inspeccion_Pruebas': 0.1, 'Punch_List': 0.1}  # Quiebres Malla
+    qgan_bcd = {'Traslado': 0.1, 'Tendido_Conexionado': 0.7, 'Inspeccion_Pruebas': 0.1, 'Punch_List': 0.1}  # TEMPORAL DE BANCODUCTO
 
     import_file_path = filedialog.askopenfilename()
     d_cable = pd.read_excel(import_file_path, sheet_name='Cables')  # Importar HHGAN OF CABLES
@@ -817,15 +807,30 @@ def import_ELECT():
                     how='left')
     d_hgan_Banco_ductos = d_hgan_Banco_ductos.merge(dfbancoducto[['sistema2', 'RATIO', 'Cantidad']], on='sistema2',
                     how='left')
-    
 
-    print(d_hgan_al)
-    print(d_hgan_malla)
-    print(d_hgan_Banco_ductos)
+    d_hgan_al['FACTOR'] = d_hgan_al['Etapa'].map(qgan_alumb)  # Creas columnas según Diccionario
+    d_hgan_malla['FACTOR'] = d_hgan_malla['Etapa'].map(qgan_malla)  # Creas columnas según Diccionario
+    d_hgan_Banco_ductos['FACTOR'] = d_hgan_Banco_ductos['Etapa'].map(qgan_bcd)  # Creas columnas según Diccionario
 
+    d_hgan_al['MLPOND'] = d_hgan_al.Cantidad * d_hgan_al.FACTOR
+    d_hgan_malla['MLPOND'] = d_hgan_malla.Cantidad * d_hgan_malla.FACTOR
+    d_hgan_Banco_ductos['MLPOND'] = d_hgan_Banco_ductos.Cantidad * d_hgan_Banco_ductos.FACTOR
 
+    d_hgan_al['HHGan'] = d_hgan_al.MLPOND * d_hgan_al.RATIO
+    d_hgan_malla['HHGan'] = d_hgan_malla.MLPOND * d_hgan_malla.RATIO
+    d_hgan_Banco_ductos['HHGan'] = d_hgan_Banco_ductos.MLPOND * d_hgan_Banco_ductos.RATIO
 
+    d_hgan_al['MLBRUTO'] = np.where(d_hgan_al.Etapa != 'Montaje_Conexionado', 0, d_hgan_al.Cantidad)
+    d_hgan_malla['MLBRUTO'] = np.where(d_hgan_malla.Etapa != 'Tendido_Conexionado', 0, d_hgan_malla.Cantidad)
+    d_hgan_Banco_ductos['MLBRUTO'] = np.where(d_hgan_Banco_ductos.Etapa != 'Tendido_Conexionado', 0, d_hgan_Banco_ductos.Cantidad)
 
+    df_gan=pd.concat([d_hgan_al,d_hgan_malla,d_hgan_Banco_ductos],axis=0)
+
+    df_gan = Semana(df_gan).split()  # Insertamos la Semana con class
+
+    print(df_gan)
+
+    df_gan.to_excel('nnn.xlsx')
 
 
     '''
@@ -906,13 +911,7 @@ def import_ELECT():
 
 
 
-    dfe['FACTOR'] = dfe['Etapa'].map(Quiebre)  # Creas columnas según Diccionario
 
-    dfe['MLPOND'] = dfe.CANT * dfe.FACTOR
-    dfe['HHGan'] = dfe.MLPOND * dfe.RATIO
-    dfe['MLBRUTO'] = np.where(dfe.Etapa != 'U_SOLDADURA', 0, dfe.CANT)
-    dfe = Semana(dfe).split()  # Insertamos la Semana con class
-    dfe['Tipo'] = 'Linea UG'
 
     dfe = dfe[['CANT', 'RATIO', 'MLPOND', 'FECHA', 'HHGan', 'Etapa', 'MLBRUTO', 'Semana', 'FLUIDCODE', 'DIAMETER',
                'DESCRIPTION_ESP', 'Tipo']]
