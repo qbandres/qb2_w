@@ -271,8 +271,6 @@ def import_OOCC():
 
     nOOCC = nOOCC.dropna(0)
 
-    print(nOOCC)
-
     #nOOCC['HH_EARNED']=nOOCC['Cant']*nOOCC['RATIOQ']*nOOCC['FACTOR']
 
 
@@ -598,7 +596,7 @@ def import_PIPING():
 
 
     nSOP_A['Etapa']='SOPORTES'
-    print(nSOP_A)
+
 
     nSOP_A = nSOP_A.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
                     how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
@@ -712,6 +710,9 @@ def import_ELECT():
     dfalumbrado=pd.read_excel(import_file_path, sheet_name='Alumbrado')  # Importar HHGAN OF Alumbrado
     dfmalla=pd.read_excel(import_file_path, sheet_name='Malla')  # Importar HHGAN OF Malla
     dfbancoducto=pd.read_excel(import_file_path, sheet_name='Banco_ductos')  # Importar HHGAN OF Banco Ductos
+    dfgastad=pd.read_excel(import_file_path, sheet_name='HHGast')  # Importar HHHastadas
+
+    print(dfgastad)
     
     
 
@@ -787,6 +788,7 @@ def import_ELECT():
     nEQU_A['CLASE']="EQUP"
 
 
+
     #ALUMBRADO, MALLA BANCODUCTOS
     d_hgan = pd.read_excel(import_file_path, sheet_name='HHGan')  # Importar HHGAN OF INSTRUMENTOS
 
@@ -828,136 +830,20 @@ def import_ELECT():
 
     df_gan = Semana(df_gan).split()  # Insertamos la Semana con class
 
-    print(df_gan)
+    df_gan = df_gan[['sistema1','sistema2','CANT','RATIO','HHGan','FECHA','MLPOND','Etapa','MLBRUTO','Semana','NSem','CLASE']]
 
-    df_gan.to_excel('nnn.xlsx')
+    nELCT=pd.concat([nCAB_A,nEPC_A,nINST_A,nCAB_A,df_gan],axis=0)
 
-
-    '''
-    dfBulk = pd.read_excel(import_file_path, sheet_name='Bulk')
-    dfBulk.rename(columns={'CLLENGTH': 'CANT'}, inplace=True)
-
-    dflinea = pd.read_excel(import_file_path, sheet_name='Linea')
-    dfsoporte = pd.read_excel(import_file_path, sheet_name='Soporte1')
-    dfvalvu = pd.read_excel(import_file_path, sheet_name='Valvulas')
-    mPIPING = pd.read_excel(import_file_path, sheet_name='HHGast')
-
-
-
-
-
-
-
-    nLIN_A = nLIN_A.merge(dflinea[['TAG', 'DESCRIPTION_ESP']], on='TAG',
-                          how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-    # nLIN_B = nLIN_B.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
-    #                how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-
-    # SOPORTES
-    dfsoporte = dfsoporte[['TAG', 'PESO', 'RATIO', 'FLUIDCODE', 'DIAMETER', 'TRASLADO', 'MONTAJE', 'TOUCH_UP', 'PUNCH']]
-
-    dfsoporte.rename(columns={'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
-                              'TOUCH_UP': 'Q3', 'PUNCH': 'Q4', 'PESO': 'CANT'},
-                     inplace=True)
-
-    nSOP_A, nSOP_B = Master(dfsoporte, 4, 0.2, 0.6, 0.15, 0.05, 0, 0.0, 'Q2', '1-Traslado', '2-Montaje', '3-Touch Up',
-                            '4-Punch Lis', '5-NN', '6-NN', '2-Montaje').develop()
-
-    nSOP_A['Etapa'] = 'SOPORTES'
-    print(nSOP_A)
-
-    nSOP_A = nSOP_A.merge(dflinea[['TAG', 'DESCRIPTION_ESP']], on='TAG',
-                          how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-    # nSOP_B = nSOP_B.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
-    #                how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-
-    nSOP_A['DESCRIPTION_ESP'] = "Soportes"
-    # nSOP_B['DESCRIPTION_ESP'] = "Soportes"
-
-    # VALVULAS
-    dfvalvu = dfvalvu[['TAG', 'CANT', 'FLUIDCODE', 'DIAMETER', 'RATIO', 'TRASLADO', 'MONTAJE', 'TOUCH_UP', 'PUNCH']]
-
-    dfvalvu.rename(columns={'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
-                            'TOUCH_UP': 'Q3', 'PUNCH': 'Q4'},
-                   inplace=True)
-
-    nVAL_A, nVAL_B = Master(dfvalvu, 4, 0.2, 0.6, 0.15, 0.05, 0, 0.0, 'Q2', '1-Traslado', '2-Montaje', '3-Touch Up',
-                            '4-Punch Lis', '5-NN', '6-NN', '2-Montaje').develop()
-    nVAL_A['Etapa'] = 'VALVULAS'
-
-    nVAL_A = nVAL_A.merge(dflinea[['TAG', 'DESCRIPTION_ESP']], on='TAG',
-                          how='left')  #
-    # nVAL_B = nVAL_B.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
-    #                how='left')  #
-
-    nVAL_A['DESCRIPTION_ESP'] = "Valvula"
-    # nVAL_B['DESCRIPTION_ESP'] = "Valvula"
-
-    # Agregamos Itemd de tipo
-    nLIN_A['Tipo'] = 'Linea'
-    # nLIN_B['Tipo']='Linea'
-    nSOP_A['Tipo'] = 'Soporte'
-    # nSOP_B['Tipo']='Soporte'
-    nVAL_A['Tipo'] = 'Válvula'
-    # nVAL_B['Tipo']='Válvula'
-
-    nPIPING = pd.concat([nLIN_A, nSOP_A, nVAL_A], axis=0)
-
-    del nPIPING['TAG']
-
-    # hhGAN bULK
-    dfe.rename(columns={'AVANCE (metrado diario)': 'CANT', 'QUIEBRE': 'Etapa'},
-               inplace=True)
-
-
-
-
-
-    dfe = dfe[['CANT', 'RATIO', 'MLPOND', 'FECHA', 'HHGan', 'Etapa', 'MLBRUTO', 'Semana', 'FLUIDCODE', 'DIAMETER',
-               'DESCRIPTION_ESP', 'Tipo']]
-
-    nPIPING = nPIPING.append(dfe)  # Agregamos HHGan BUlk a las HH de matriz
-    nPIPING.dropna(subset=['HHGan'], inplace=True)  # Limpiamos ala información
-
-    Totcode = pd.concat([dflinea[['FLUIDCODE', 'DIAMETER', 'CANT']], dfBulk[['FLUIDCODE', 'DIAMETER', 'CANT']]],
-                        axis=0)  # Data base de metrados totales
-
-    dfs = pd.read_excel(import_file_path, sheet_name='HHGast')  # IMportamos horas gastadas.
-
-    dfs["FECHA"] = pd.to_datetime(dfs.FECHA).dt.date  # Conviertes fecha en formato sin horas
-
-    m = dfs[['FECHA', 'FLUIDCODE', 'DIAMETER', 'QUIEBRE', 'SUPERVISOR', 'Capataz', 'MM', 'M1', 'M2', 'Ayudante',
-             'RESTRICCION', 'HH_RESTR',
-             'Soldador']]  # Data frame de Horas Gastadas
-
-    mPIPING = m.melt(id_vars=["FECHA", 'FLUIDCODE', 'DIAMETER', 'QUIEBRE', 'SUPERVISOR', 'RESTRICCION'],
-                     var_name="CATEGORIA",
-                     value_name="HHGast")
-
-    mPIPING = Semana(mPIPING).split()  # Insertamos la Semana con class
-    mPIPING['Etapa'] = mPIPING['QUIEBRE'].map(changQ)  # Creas columnas según Diccionario
-
-    mPIPING = Restr(mPIPING).add()  # Insertamos las HH restr limpiar
-
-    mPIPING.dropna(subset=['HHGast'], inplace=True)
-
-    nPIPING['Disc'] = 'PIP'
-    mPIPING['Disc'] = 'PIP'
-
-    rest_pip = mPIPING[mPIPING.CATEGORIA == 'HH_RESTR']
-    rest_pip = rest_pip[['FECHA', 'CATEGORIA', 'HHGast', 'Semana', 'Disc', 'RESTRICCION']]
-    
-    '''
-
-    d_totelec=pd.concat([nCAB_A,nEPC_A,nINST_A,nEQU_A],axis=0)
-    print(d_totelec)
-    d_totelec.to_excel("ppp.xlsx")
+    print(nELCT)
+    nELCT.to_excel("ppp.xlsx")
     
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
 
     f = 1999  # Frequency
     d = 900  # Duration
     winsound.Beep(f, d)
+
+
 def export():
 
 
