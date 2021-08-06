@@ -238,7 +238,6 @@ class Restr:
 
         return self.df
 
-
 def import_OOCC():
     global nOOCC,mOOCC,dfIDOOCC
 
@@ -712,9 +711,8 @@ def import_ELECT():
     dfbancoducto=pd.read_excel(import_file_path, sheet_name='Banco_ductos')  # Importar HHGAN OF Banco Ductos
     dfgastad=pd.read_excel(import_file_path, sheet_name='HHGast')  # Importar HHHastadas
 
+    dfgastad=dfgastad[['FECHA','CLASE','SERVICIO','CODE','QUIEBRE','SUPERVISOR','Capataz','MM','M1','M2','Ayudante','Soldador','RESTRICCION','HH_RESTR']]
     print(dfgastad)
-    
-    
 
     #RENOMBRAR
 
