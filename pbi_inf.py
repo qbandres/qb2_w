@@ -718,6 +718,7 @@ def import_ELECT():
     d_cable = pd.read_excel(import_file_path, sheet_name='Cables')  # Importar HHGAN OF CABLES
     d_EPC = pd.read_excel(import_file_path, sheet_name='EPC')  # Importar HHGAN OF EPC
     d_inst = pd.read_excel(import_file_path, sheet_name='Instrumentos')  # Importar HHGAN OF INSTRUMENTOS
+    d_equp = pd.read_excel(import_file_path, sheet_name='Equipos')  # Importar HHGAN OF INSTRUMENTOS
 
     # CABLES
     d_cable= d_cable[
@@ -738,7 +739,7 @@ def import_ELECT():
 
     # EPC
     d_EPC= d_EPC[
-        ['Sub_area', 'Partida', 'Cantidad', 'ESP', 'RATIO', 'TRASLADO', 'CANALIZACION',
+        ['Sub_area', 'Partida', 'Cantidad', 'RATIO', 'TRASLADO', 'CANALIZACION',
          'SOPORTE_FAB', 'SOPORTE_MON', 'PUNCH_LIST']]
 
     d_EPC.rename(columns={"Sub_area":'sistema1',"Partida":"sistema2", 'TRASLADO': 'Q1', 'CANALIZACION': 'Q2',
@@ -754,7 +755,7 @@ def import_ELECT():
     
     # INSTRUMENTOS
     d_inst= d_inst[
-        ['Descri_Equipo', 'Sistema', 'Cantidad', 'ESP', 'RATIO', 'TRASLADO', 'MONTAJE',
+        ['Descri_Equipo', 'Sistema', 'Cantidad', 'RATIO', 'TRASLADO', 'MONTAJE',
          'NIVELACION', 'PUNCH_LIST']]
 
     d_inst.rename(columns={"Descri_Equipo":'sistema1',"Sistema":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
@@ -765,6 +766,21 @@ def import_ELECT():
                             '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
 
     nINST_A['Tipo']="INST"
+
+    # EQUIPOS
+    d_equp= d_equp[
+        ['Ubicación', 'Equipo', 'Cantidad', 'RATIO', 'TRASLADO', 'MONTAJE',
+         'NIVELACION', 'PUNCH_LIST']]
+
+    d_equp.rename(columns={"Descri_Equipo":'sistema1',"Sistema":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
+                            'NIVELACION': 'Q3', 'PUNCH_LIST': 'Q4', 'Cantidad': 'CANT'},
+                   inplace=True)
+
+    nEQU_A, nEQU_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
+                            '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
+
+    nEQU_A['Tipo']="EQUP"
+
 
 
 
@@ -894,7 +910,7 @@ def import_ELECT():
     
     '''
 
-    d_totelec=pd.concat([nCAB_A,nEPC_A,nINST_A],axis=0)
+    d_totelec=pd.concat([nCAB_A,nEPC_A,nINST_A,nEQU_A],axis=0)
     print(d_totelec)
     d_totelec.to_excel("ppp.xlsx")
     
