@@ -719,6 +719,21 @@ def import_ELECT():
     d_EPC = pd.read_excel(import_file_path, sheet_name='EPC')  # Importar HHGAN OF EPC
     d_inst = pd.read_excel(import_file_path, sheet_name='Instrumentos')  # Importar HHGAN OF INSTRUMENTOS
     d_equp = pd.read_excel(import_file_path, sheet_name='Equipos')  # Importar HHGAN OF INSTRUMENTOS
+    dfalumbrado=pd.read_excel(import_file_path, sheet_name='Alumbrado')  # Importar HHGAN OF Alumbrado
+    dfmalla=pd.read_excel(import_file_path, sheet_name='Malla')  # Importar HHGAN OF Malla
+    dfbancoducto=pd.read_excel(import_file_path, sheet_name='Banco_ductos')  # Importar HHGAN OF Banco Ductos
+    
+    
+
+    #RENOMBRAR
+
+    dfalumbrado.rename(columns={'UBICACION':"sistema1","TAG":"sistema2"},
+                   inplace=True)    
+    dfmalla.rename(columns={'SECTOR':"sistema1","UBICACION":"sistema2"},
+                   inplace=True)    
+    dfbancoducto.rename(columns={'Sub_Area':"sistema1","TAG":"sistema2"},
+                   inplace=True)
+    
 
     # CABLES
     d_cable= d_cable[
@@ -733,7 +748,7 @@ def import_ELECT():
                             '3-Conexionado', '4-Pruebas', '5-Punch List', '6-xxxx', '2-Tendido').develop()
 
     
-    nCAB_A['Tipo']="Cable"
+    nCAB_A['CLASE']="Cable"
     
 
 
@@ -749,7 +764,7 @@ def import_ELECT():
     nEPC_A, nEPC_B = Masterelect(d_EPC, 5, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Tendido',
                             '3-Conexionado', '4-Pruebas', '5-Punch List', '6-xxxx', '2-Tendido').develop()
 
-    nEPC_A['Tipo']="EPC"
+    nEPC_A['CLASE']="EPC"
 
 
     
@@ -765,7 +780,7 @@ def import_ELECT():
     nINST_A, nINST_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
                             '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
 
-    nINST_A['Tipo']="INST"
+    nINST_A['CLASE']="INST"
 
     # EQUIPOS
     d_equp= d_equp[
@@ -779,18 +794,34 @@ def import_ELECT():
     nEQU_A, nEQU_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
                             '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
 
-    nEQU_A['Tipo']="EQUP"
+    nEQU_A['CLASE']="EQUP"
 
 
     #ALUMBRADO, MALLA BANCODUCTOS
     d_hgan = pd.read_excel(import_file_path, sheet_name='HHGan')  # Importar HHGAN OF INSTRUMENTOS
 
-    d_equp= d_equp[['SERVICIO', 'CODE', 'Avance', 'SUPERVISOR', 'TRASLADO', 'MONTAJE',
-         'NIVELACION', 'PUNCH_LIST']]
+    d_hgan= d_hgan[['SERVICIO', 'CODE', 'Avance','QUIEBRE','SUPERVISOR', 'FECHA',"CLASE"]]
+    
+    d_hgan.rename(columns={"SERVICIO":'sistema1',"CODE":"sistema2", 'Avance': 'CANT','QUIEBRE': 'Etapa'},
+                   inplace=True)
+    d_hgan["FECHA"] = pd.to_datetime(d_hgan.FECHA).dt.date  # Conviertes fecha en formato sin horas
+
+    d_hgan_al=d_hgan[d_hgan.CLASE=="Alumbrado"]
+    d_hgan_malla=d_hgan[d_hgan.CLASE=="Malla"]
+    d_hgan_Banco_ductos=d_hgan[d_hgan.CLASE=="Banco_ductos"]
 
 
+    d_hgan_al = d_hgan_al.merge(dfalumbrado[['sistema2','RATIO', 'Cantidad']], on='sistema2',
+                    how='left')
+    d_hgan_malla = d_hgan_malla.merge(dfmalla[['sistema2','RATIO', 'Cantidad']], on='sistema2',
+                    how='left')
+    d_hgan_Banco_ductos = d_hgan_Banco_ductos.merge(dfbancoducto[['sistema2', 'RATIO', 'Cantidad']], on='sistema2',
+                    how='left')
+    
 
-
+    print(d_hgan_al)
+    print(d_hgan_malla)
+    print(d_hgan_Banco_ductos)
 
 
 
@@ -870,12 +901,10 @@ def import_ELECT():
     del nPIPING['TAG']
 
     # hhGAN bULK
-    dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date  # Conviertes fecha en formato sin horas
     dfe.rename(columns={'AVANCE (metrado diario)': 'CANT', 'QUIEBRE': 'Etapa'},
                inplace=True)
 
-    dfe = dfe.merge(dfBulk[['TAG', 'FLUIDCODE', 'RATIO', 'DESCRIPTION_ESP']], on='TAG',
-                    how='left')  #
+
 
     dfe['FACTOR'] = dfe['Etapa'].map(Quiebre)  # Creas columnas según Diccionario
 
