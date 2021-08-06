@@ -782,6 +782,17 @@ def import_ELECT():
     nEQU_A['Tipo']="EQUP"
 
 
+    #ALUMBRADO, MALLA BANCODUCTOS
+    d_hgan = pd.read_excel(import_file_path, sheet_name='HHGan')  # Importar HHGAN OF INSTRUMENTOS
+
+    d_equp= d_equp[['SERVICIO', 'CODE', 'Avance', 'SUPERVISOR', 'TRASLADO', 'MONTAJE',
+         'NIVELACION', 'PUNCH_LIST']]
+
+
+
+
+
+
 
 
 
