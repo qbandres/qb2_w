@@ -5,7 +5,7 @@ import numpy as np
 import winsound
 from datetime import date, timedelta
 
-# Definir Colores
+# Definir Colores Nuevos para todos
 d_color = {'fondo': '#BDBDBD', 'boton': 'gray', 'framew': 'gray60', 'letra': '#BDBDBD'}
 pd.options.mode.chained_assignment = None  # default='warn'
 
