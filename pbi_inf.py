@@ -841,8 +841,8 @@ def import_ELECT():
     mELECT["FECHA"] = pd.to_datetime(mELECT.FECHA).dt.date  # Conviertes fecha en formato sin horas
     mELECT = Semana(mELECT).split()
 
-    print(mELECT)
-    mELECT.to_excel("ppp.xlsx")
+    nELECT['Disc'] = 'ELECT'
+    mELECT['Disc'] = 'ELECT'
     
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
 
@@ -860,16 +860,17 @@ def export():
     mPIPINGR = mPIPING[['FECHA', 'HHGast', 'Disc']]
 
     dfvc = dfv[['FECHA', 'HHGan', 'Disc']]
-
     df_Steel_HHc = df_Steel_HH[['FECHA', 'HHGast', 'Disc']]
-    #dfvc.columns = ['FECHA', 'HHGan', 'Disc']
 
-    GlobGan = pd.concat([nMGR, dfvc,nPIPINGR], axis=0)                                                                  #Concatenmos las las HH Ganadas
+    nELECTR = nELECT[['FECHA', 'HHGan', 'Disc']]
+    mELECTR = mELECT[['FECHA', 'HHGast', 'Disc']]
+
+    GlobGan = pd.concat([nMGR, dfvc,nPIPINGR,nELECTR], axis=0)                                                                  #Concatenmos las las HH Ganadas
     GlobGan.dropna(subset=['FECHA'],inplace=True)                                                                       #Limpiamos la información
     GlobGan=GlobGan[GlobGan['FECHA']> date(2021, 6, 15) ]
     GlobGan = Semana(GlobGan).split()                                                                                   # Insertamos la Semana con class
 
-    GlobGas = pd.concat([mMGR, df_Steel_HHc,mPIPINGR], axis=0)                                                          # Concatenamos las HH Gastadas
+    GlobGas = pd.concat([mMGR, df_Steel_HHc,mPIPINGR,mELECTR], axis=0)                                                          # Concatenamos las HH Gastadas
     GlobGas = Semana(GlobGas).split()                                                                                   # Insertamos la Semana con class
 
     GlobGas_t = GlobGas[GlobGas.HHGast > 0]                                                                             #Retiaramos las HH de restricción
@@ -954,13 +955,13 @@ Widget(root, d_color['fondo'], 1, 1, 7, 12).letra('Resumen General')
 
 
 ##Creando los botones
-#Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
-#Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
-#Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
-#Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
-#Widget(root, d_color['boton'], 15, 1, 200, 175).boton('EXPORTAR',export)
+Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
+Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
+Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
+Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
 #Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
-Widget(root, d_color['boton'], 15, 1, 200, 145).boton('ELECTRICIDAD',import_ELECT)
+Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
+Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
 
