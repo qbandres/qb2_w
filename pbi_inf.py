@@ -712,7 +712,6 @@ def import_ELECT():
     dfgastad=pd.read_excel(import_file_path, sheet_name='HHGast')  # Importar HHHastadas
 
     dfgastad=dfgastad[['FECHA','CLASE','SERVICIO','CODE','QUIEBRE','SUPERVISOR','Capataz','MM','M1','M2','Ayudante','Soldador','RESTRICCION','HH_RESTR']]
-    print(dfgastad)
 
     #RENOMBRAR
 
@@ -722,7 +721,9 @@ def import_ELECT():
                    inplace=True)    
     dfbancoducto.rename(columns={'Sub_Area':"sistema1","TAG":"sistema2"},
                    inplace=True)
-    
+    dfgastad.rename(columns={'SERVICIO': "sistema1", "CODE": "sistema2",'QUIEBRE':'Etapa'},
+                        inplace=True)
+
 
     # CABLES
     d_cable= d_cable[
@@ -830,10 +831,18 @@ def import_ELECT():
 
     df_gan = df_gan[['sistema1','sistema2','CANT','RATIO','HHGan','FECHA','MLPOND','Etapa','MLBRUTO','Semana','NSem','CLASE']]
 
-    nELCT=pd.concat([nCAB_A,nEPC_A,nINST_A,nCAB_A,df_gan],axis=0)
+    nELECT=pd.concat([nCAB_A,nEPC_A,nINST_A,nCAB_A,df_gan],axis=0)
 
-    print(nELCT)
-    nELCT.to_excel("ppp.xlsx")
+    mELECT = dfgastad.melt(id_vars=["FECHA",'sistema1','sistema2', 'Etapa', 'SUPERVISOR','RESTRICCION','CLASE'],
+               var_name="CATEGORIA",
+               value_name="HHGast")
+
+    mELECT.dropna(subset=['HHGast'], inplace=True)
+    mELECT["FECHA"] = pd.to_datetime(mELECT.FECHA).dt.date  # Conviertes fecha en formato sin horas
+    mELECT = Semana(mELECT).split()
+
+    print(mELECT)
+    mELECT.to_excel("ppp.xlsx")
     
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
 
@@ -844,8 +853,6 @@ def import_ELECT():
 
 def export():
 
-
-
     nMGR = nMG[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
     mMGR = mMG[['FECHA', 'HHGast', 'Disc']]                                                                             #Filtras las HH Gast
 
@@ -854,7 +861,6 @@ def export():
 
     dfvc = dfv[['FECHA', 'HHGan', 'Disc']]
 
-
     df_Steel_HHc = df_Steel_HH[['FECHA', 'HHGast', 'Disc']]
     #dfvc.columns = ['FECHA', 'HHGan', 'Disc']
 
@@ -862,8 +868,6 @@ def export():
     GlobGan.dropna(subset=['FECHA'],inplace=True)                                                                       #Limpiamos la información
     GlobGan=GlobGan[GlobGan['FECHA']> date(2021, 6, 15) ]
     GlobGan = Semana(GlobGan).split()                                                                                   # Insertamos la Semana con class
-
-
 
     GlobGas = pd.concat([mMGR, df_Steel_HHc,mPIPINGR], axis=0)                                                          # Concatenamos las HH Gastadas
     GlobGas = Semana(GlobGas).split()                                                                                   # Insertamos la Semana con class
@@ -904,13 +908,12 @@ def export():
     H_Rest.to_excel(writer, sheet_name='Restricicones', index=True)
 
 
-    '''
-    # Exportar OOCC
-    nOOCC.to_excel(writer, sheet_name='OOCC_Gan', index=True)
-    mOOCC.to_excel(writer, sheet_name='OOCC_Gas', index=True)
-    dfIDOOCC.to_excel(writer, sheet_name='OOCC_AllEquip', index=True)
-    
-    '''
+
+    # Exportar ELECT
+    nELECT.to_excel(writer, sheet_name='ELECT_Gan', index=True)
+    mELECT.to_excel(writer, sheet_name='ELECT_Gast', index=True)
+    #dfIDOOCC.to_excel(writer, sheet_name='OOCC_AllEquip', index=True)
+
     # Exportar MG
     nMG.to_excel(writer, sheet_name='MG_Gan', index=True)
     mMG.to_excel(writer, sheet_name='MG_Gas', index=True)
