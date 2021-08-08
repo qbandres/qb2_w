@@ -223,8 +223,6 @@ class Masterelect:
 
 
         d_cablem["FECHA"] = pd.to_datetime(d_cablem.FECHA).dt.date
-
-        d_cablem['MLBRUTO'] = np.where(d_cablem.Etapa != self.FB, 0, d_cablem.CANT)
         d_cablem = Semana(d_cablem).split()  # Insertamos la Semana con class
 
 
@@ -582,8 +580,6 @@ def import_PIPING():
     
     nLIN_A = nLIN_A.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
                     how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-    #nLIN_B = nLIN_B.merge(dflinea[['TAG','DESCRIPTION_ESP']], on='TAG',
-    #                how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
 
 
     #SOPORTES
@@ -636,6 +632,7 @@ def import_PIPING():
     #nVAL_B['Tipo']='Válvula'
 
     nPIPING=pd.concat([nLIN_A,nSOP_A,nVAL_A],axis=0)
+    nPIPING['MLBRUTO'] = np.where((nPIPING.Etapa == '4-Soldadura') & (nPIPING.Tipo =='Linea'), nPIPING.CANT,0 )
 
     del nPIPING['TAG']
 
