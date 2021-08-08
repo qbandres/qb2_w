@@ -695,7 +695,7 @@ def import_PIPING():
     d = 900  # Duration
     winsound.Beep(f, d)
 def import_ELECT():
-    global mELECT, nELECT, Totcode, pip_person, rest_pip
+    global mELECT, nELECT, rest_pip,sist_ele
 
     qgan_alumb = {'Traslado': 0.1, 'Montaje_Conexionado': 0.6, 'Test': 0.2, 'Punch_List': 0.1}  # Quiebres Alumbrado
     qgan_malla = {'Traslado': 0.1, 'Tendido_Conexionado': 0.7, 'Inspeccion_Pruebas': 0.1, 'Punch_List': 0.1}  # Quiebres Malla
@@ -777,9 +777,10 @@ def import_ELECT():
         ['Ubicación', 'Equipo', 'Cantidad', 'RATIO', 'TRASLADO', 'MONTAJE',
          'NIVELACION', 'PUNCH_LIST']]
 
-    d_equp.rename(columns={"Descri_Equipo":'sistema1',"Sistema":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
+    d_equp.rename(columns={"Ubicación":'sistema1',"Equipo":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
                             'NIVELACION': 'Q3', 'PUNCH_LIST': 'Q4', 'Cantidad': 'CANT'},
                    inplace=True)
+    print(d_equp.columns)
 
     nEQU_A, nEQU_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
                             '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
@@ -845,6 +846,28 @@ def import_ELECT():
     mELECT['Disc'] = 'ELECT'
     
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
+
+    d_cable['CLASE']='Cable'
+    d_EPC['CLASE'] = 'EPC'
+    d_inst['CLASE'] = 'INST'
+    d_equp['CLASE'] = 'EQUP'
+    dfalumbrado['CLASE'] = 'Alumbrado'
+    dfalumbrado.rename(columns={'Cantidad':'CANT'},inplace=True)
+    dfmalla['CLASE'] = 'Malla'
+    dfmalla.rename(columns={'Cantidad': 'CANT'},inplace=True)
+    dfbancoducto['CLASE'] = 'Banco_ductos'
+    dfbancoducto.rename(columns={'Cantidad': 'CANT'},inplace=True)
+
+    print(dfmalla.columns)
+    print(dfbancoducto.columns)
+
+
+    sist_ele = pd.concat([d_cable[['sistema1', 'sistema2', 'CANT','CLASE']],
+                          d_EPC[['sistema1', 'sistema2', 'CANT','CLASE']],d_inst[['sistema1', 'sistema2', 'CANT','CLASE']],
+                          d_equp[['sistema1', 'sistema2', 'CANT','CLASE']],dfalumbrado[['sistema1', 'sistema2', 'CANT','CLASE']],
+                          dfmalla[['sistema1', 'sistema2', 'CANT', 'CLASE']],dfbancoducto[['sistema1', 'sistema2', 'CANT','CLASE']]
+
+                          ], axis=0)
 
     f = 1999  # Frequency
     d = 900  # Duration
@@ -913,7 +936,7 @@ def export():
     # Exportar ELECT
     nELECT.to_excel(writer, sheet_name='ELECT_Gan', index=True)
     mELECT.to_excel(writer, sheet_name='ELECT_Gast', index=True)
-    #dfIDOOCC.to_excel(writer, sheet_name='OOCC_AllEquip', index=True)
+    sist_ele.to_excel(writer, sheet_name='ELECT_System', index=True)
 
     # Exportar MG
     nMG.to_excel(writer, sheet_name='MG_Gan', index=True)
