@@ -139,8 +139,6 @@ class Master:
 
 
         dflineaM["FECHA"] = pd.to_datetime(dflineaM.FECHA).dt.date
-
-        dflineaM['MLBRUTO'] = np.where(dflineaM.Etapa != self.FB, 0, dflineaM.CANT)
         dflineaM = Semana(dflineaM).split()  # Insertamos la Semana con class
 
 
@@ -632,6 +630,7 @@ def import_PIPING():
     #nVAL_B['Tipo']='Válvula'
 
     nPIPING=pd.concat([nLIN_A,nSOP_A,nVAL_A],axis=0)
+    
     nPIPING['MLBRUTO'] = np.where((nPIPING.Etapa == '4-Soldadura') & (nPIPING.Tipo =='Linea'), nPIPING.CANT,0 )
 
     del nPIPING['TAG']
