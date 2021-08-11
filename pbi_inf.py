@@ -246,12 +246,19 @@ def import_OOCC():
     dfs = pd.read_excel(import_file_path, sheet_name='HHGast')
     dfID = pd.read_excel(import_file_path, sheet_name='ID')
 
+    print(dfe)
+    print(dfs)
+    print(dfID)
+
     Quiebre = {'TRASLADO': 0.03, 'FIERRO': 0.2, 'MOLDAJE/INSERTOS': 0.3, 'HORMIGON': 0.25, 'DESCIMBRE': 0.08, 'PUNCH': 0.04
                ,'MONTAJE':0.5,'JUNTAS':0.15,'NIVELACION':0.15,'PUNCH LIST':0.05}  # Quiebres Mecanica General
+
+    '''
 
     dfIDOOCC = dfID[['ELEMENTO','SUB_ELEMENTO','CANTIDAD ITEM','ALCANCE TOTAL QUIEBRE','FACTOR']]  # Solo obtener TAG Y Horas de los equpos.
 
     # dfe[dfe == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
+    # dfs[dfs == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
     # dfs[dfs == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
 
     dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date  # Conviertes fecha en formato sin horas
@@ -281,6 +288,8 @@ def import_OOCC():
                value_name="HH_SPENT")
 
     mOOCC = mOOCC.dropna()
+    
+    '''
 
 
     f = 1999  # Frequency
@@ -873,7 +882,6 @@ def import_ELECT():
     d = 900  # Duration
     winsound.Beep(f, d)
 
-
 def export():
 
     nMGR = nMG[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
@@ -978,13 +986,13 @@ Widget(root, d_color['fondo'], 1, 1, 7, 12).letra('Resumen General')
 
 
 ##Creando los botones
-Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
-Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
-Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
-Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
-#Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
-Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
-Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
+# Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
+# Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
+# Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
+# Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
+Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
+# Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
+# Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
 
