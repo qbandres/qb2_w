@@ -237,7 +237,7 @@ class Restr:
         return self.df
 
 def import_OOCC():
-    global nOOCC,mOOCC,dfIDOOCC
+    global nOOCC,mOOCC,dfID_OOCC, rest_OOCC
 
     ###CODIGO MECANICA#############################
 
@@ -253,42 +253,58 @@ def import_OOCC():
     dfe['tc1']=dfe.SUB_ELEMENTO+dfe.QUIEBRE
     dfID['tc1']=dfID.SUB_ELEMENTO+dfID.QUIEBRE
 
-    dfe = dfe.merge(dfID[['tc1','M_TOT']], on='tc1',
-                    how='left')  #
+    dfe = dfe.merge(dfID[['tc1','M_TOT']], on='tc1',how='left')  #
 
-    dfe = dfe.merge(dfID[['tc1','H_TOT']], on='tc1',
-                    how='left')  #
+    dfe = dfe.merge(dfID[['tc1','H_TOT']], on='tc1',how='left')  #
+
+    dfe = dfe.merge(dfID[['tc1','DESCRIPCION']], on='tc1',how='left')  #
 
     dfe['HHGan']=dfe.Cant*dfe.H_TOT/dfe.M_TOT
 
-    del dfe['H_TOT']
-    del dfe['M_TOT']
-    del dfe['tc1']
+
 
     dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date
 
     dfe = Semana(dfe).split()  # Insertamos la Semana con class
 
-    print(dfe)
-
-    ''' 
 
 
-    mOOCC = dfs[['FECHA', 'SUB_ELEMENTO', 'QUIEBRE', 'SUPERVISOR', 'ACTIVIDAD', 'Capataz', 'MM', 'M1', 'M2', 'Ayudante',
+    mOOCC = dfs[['FECHA', 'SUB_ELEMENTO', 'QUIEBRE', 'SUPERVISOR', 'HH_RESTR','RESTRICCION','Capataz', 'MM', 'M1', 'M2', 'Ayudante',
              'Soldador']]  # Data frame de Horas Gastadas
 
-    mOOCC = mOOCC.melt(id_vars=["FECHA", "SUB_ELEMENTO", 'QUIEBRE', 'SUPERVISOR', 'ACTIVIDAD'],
+    mOOCC = mOOCC.melt(id_vars=["FECHA", "SUB_ELEMENTO", 'QUIEBRE', 'SUPERVISOR','RESTRICCION'],
                var_name="CATEGORIA",
-               value_name="HH_SPENT")
+               value_name="HHGast")
 
-    mOOCC = mOOCC.dropna()
-    
-    '''
+    mOOCC = Restr(mOOCC).add()  # Insertamos las HH restr limpiar
+    mOOCC.dropna(subset=['HHGast'],inplace=True)
+
+    mOOCC['tc1'] = mOOCC.SUB_ELEMENTO + mOOCC.QUIEBRE
+    mOOCC = mOOCC.merge(dfID[['tc1','DESCRIPCION']], on='tc1',how='left')  #
+    mOOCC["FECHA"] = pd.to_datetime(mOOCC.FECHA).dt.date
+    mOOCC = Semana(mOOCC).split()  # Insertamos la Semana con class
+
+    del dfe['H_TOT']
+    del dfe['M_TOT']
+    del dfe['tc1']
+    del mOOCC['tc1']
+
+    mOOCC['Disc']='OOCC'
+    dfe['Disc']='OOCC'
+
+    nOOCC=dfe.copy()
+    dfID_OOCC=dfID.copy()
+
+    rest_OOCC=mOOCC[mOOCC.CATEGORIA=='HH_RESTR']
+    rest_OOCC=rest_OOCC[['FECHA','CATEGORIA','HHGast','Semana','Disc','RESTRICCION']]
+
+    Widget(root, d_color['fondo'], 1, 1, 140, 13).letra('OOCC')
 
 
     f = 1999  # Frequency
     d = 900  # Duration
     winsound.Beep(f, d)
+
 def import_STEELM():
 
     global dfv, df_base
@@ -467,7 +483,7 @@ def import_STEELR():
     d = 900  # Duration
     winsound.Beep(f, d)
 def import_MG():
-    global nMG,mMG, dfID, maMG,mg_person,rest_MG
+    global nMG,mMG, dfID, maMG,rest_MG
     ###CODIGO MECANICA#############################
 
     import_file_path = filedialog.askopenfilename()
@@ -479,9 +495,6 @@ def import_MG():
 
 
     dfe = dfe.merge(dfID[['TAG_EQUIPO','HH']], on='TAG_EQUIPO', how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-
-    # dfe[dfe == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
-    # dfs[dfs == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
 
     dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date  # Conviertes fecha en formato sin horas
     dfs["FECHA"] = pd.to_datetime(dfs.FECHA).dt.date  # Conviertes fecha en formato sin horas
@@ -722,7 +735,7 @@ def import_ELECT():
                    inplace=True)    
     dfmalla.rename(columns={'SECTOR':"sistema1","UBICACION":"sistema2"},
                    inplace=True)    
-    dfbancoducto.rename(columns={'Sub_Area':"sistema1","TAG":"sistema2"},
+    dfbancoducto.rename(columns={'Sub _Area':"sistema1","TAG":"sistema2"},
                    inplace=True)
     dfgastad.rename(columns={'SERVICIO': "sistema1", "CODE": "sistema2",'QUIEBRE':'Etapa'},
                         inplace=True)
@@ -878,6 +891,9 @@ def import_ELECT():
 
 def export():
 
+    nOOCCR = nOOCC[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
+    mOOCCR = mOOCC[['FECHA', 'HHGast', 'Disc']]
+
     nMGR = nMG[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
     mMGR = mMG[['FECHA', 'HHGast', 'Disc']]                                                                             #Filtras las HH Gast
 
@@ -890,17 +906,17 @@ def export():
     nELECTR = nELECT[['FECHA', 'HHGan', 'Disc']]
     mELECTR = mELECT[['FECHA', 'HHGast', 'Disc']]
 
-    GlobGan = pd.concat([nMGR, dfvc,nPIPINGR,nELECTR], axis=0)                                                                  #Concatenmos las las HH Ganadas
+    GlobGan = pd.concat([nMGR, dfvc,nPIPINGR,nELECTR,nOOCCR], axis=0)                                                                  #Concatenmos las las HH Ganadas
     GlobGan.dropna(subset=['FECHA'],inplace=True)                                                                       #Limpiamos la información
     GlobGan=GlobGan[GlobGan['FECHA']> date(2021, 6, 15) ]
     GlobGan = Semana(GlobGan).split()                                                                                   # Insertamos la Semana con class
 
-    GlobGas = pd.concat([mMGR, df_Steel_HHc,mPIPINGR,mELECTR], axis=0)                                                          # Concatenamos las HH Gastadas
+    GlobGas = pd.concat([mMGR, df_Steel_HHc,mPIPINGR,mELECTR,mOOCCR], axis=0)                                                          # Concatenamos las HH Gastadas
     GlobGas = Semana(GlobGas).split()                                                                                   # Insertamos la Semana con class
 
     GlobGas_t = GlobGas[GlobGas.HHGast > 0]                                                                             #Retiaramos las HH de restricción
 
-    GlobPerso1 = pd.concat([mMG[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']], mPIPING[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],df_Steel_HH[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']]], axis=0)
+    GlobPerso1 = pd.concat([mMG[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']], mPIPING[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],df_Steel_HH[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],mOOCC[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']]], axis=0)
     GlobPerso1 = GlobPerso1[GlobPerso1.HHGast > 0]
 
     tempGlob=GlobPerso1.groupby(['Disc','Semana'])['NSem'].max()
@@ -933,7 +949,10 @@ def export():
     GlobPerso1.to_excel(writer, sheet_name='Personal', index=True)
     H_Rest.to_excel(writer, sheet_name='Restricicones', index=True)
 
-
+    # Exportar OOCC
+    nOOCC.to_excel(writer, sheet_name='OOCC_Gan', index=True)
+    mOOCC.to_excel(writer, sheet_name='OOCC_Gas', index=True)
+    dfID_OOCC[['QUIEBRE','SUB_ELEMENTO','M_TOT','H_TOT']].to_excel(writer, sheet_name='MG_AllEquip', index=True)
 
     # Exportar ELECT
     nELECT.to_excel(writer, sheet_name='ELECT_Gan', index=True)
@@ -980,13 +999,13 @@ Widget(root, d_color['fondo'], 1, 1, 7, 12).letra('Resumen General')
 
 
 ##Creando los botones
-# Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
-# Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
-# Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
-# Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
+Widget(root, d_color['boton'], 15, 1, 200, 35).boton('STEEL-MASTER', import_STEELM)
+Widget(root, d_color['boton'], 15, 1, 200, 65).boton('STEEL-RECURSOS', import_STEELR)
+Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
+Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
 Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
-# Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
-# Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
+Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
+Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
 
