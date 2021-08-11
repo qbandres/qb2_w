@@ -246,39 +246,33 @@ def import_OOCC():
     dfs = pd.read_excel(import_file_path, sheet_name='HHGast')
     dfID = pd.read_excel(import_file_path, sheet_name='ID')
 
+    listag = list(dfe['SUB_ELEMENTO'])        #convetir columna a lista
+
+    dfe = dfe[['FECHA',  'SUB_ELEMENTO','QUIEBRE', 'ACTIVIDAD', 'SUPERVISOR', 'Cant']]
+
+    dfe['tc1']=dfe.SUB_ELEMENTO+dfe.QUIEBRE
+    dfID['tc1']=dfID.SUB_ELEMENTO+dfID.QUIEBRE
+
+    dfe = dfe.merge(dfID[['tc1','M_TOT']], on='tc1',
+                    how='left')  #
+
+    dfe = dfe.merge(dfID[['tc1','H_TOT']], on='tc1',
+                    how='left')  #
+
+    dfe['HHGan']=dfe.Cant*dfe.H_TOT/dfe.M_TOT
+
+    del dfe['H_TOT']
+    del dfe['M_TOT']
+    del dfe['tc1']
+
+    dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date
+
+    dfe = Semana(dfe).split()  # Insertamos la Semana con class
+
     print(dfe)
-    print(dfs)
-    print(dfID)
 
-    Quiebre = {'TRASLADO': 0.03, 'FIERRO': 0.2, 'MOLDAJE/INSERTOS': 0.3, 'HORMIGON': 0.25, 'DESCIMBRE': 0.08, 'PUNCH': 0.04
-               ,'MONTAJE':0.5,'JUNTAS':0.15,'NIVELACION':0.15,'PUNCH LIST':0.05}  # Quiebres Mecanica General
+    ''' 
 
-    '''
-
-    dfIDOOCC = dfID[['ELEMENTO','SUB_ELEMENTO','CANTIDAD ITEM','ALCANCE TOTAL QUIEBRE','FACTOR']]  # Solo obtener TAG Y Horas de los equpos.
-
-    # dfe[dfe == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
-    # dfs[dfs == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
-    # dfs[dfs == 0] = 'nan'                                       #Reemplazar con NaN los Zeros
-
-    dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date  # Conviertes fecha en formato sin horas
-    dfs["FECHA"] = pd.to_datetime(dfs.FECHA).dt.date  # Conviertes fecha en formato sin horas
-
-
-
-    nOOCC = dfe[['FECHA', 'SUB_ELEMENTO', 'QUIEBRE', 'SUPERVISOR', 'Cant', 'ACTIVIDAD']]  # Data frame de horas Ganadas
-    nOOCC['RATIOQ'] = nOOCC['QUIEBRE'].map(Quiebre)  # Creas columnas según Diccionario
-
-    dfIDOOCC1 = dfIDOOCC[['SUB_ELEMENTO', 'FACTOR']]  # Solo obtener TAG Y Horas de los equpos.
-    nOOCC = nOOCC.merge(dfIDOOCC1, on='SUB_ELEMENTO', how='left')  # Buscas HH de ID y lo insertas en data Horas ganadas
-
-
-    nOOCC = nOOCC.dropna(0)
-
-    #nOOCC['HH_EARNED']=nOOCC['Cant']*nOOCC['RATIOQ']*nOOCC['FACTOR']
-
-
-    nOOCC = nOOCC.dropna()
 
     mOOCC = dfs[['FECHA', 'SUB_ELEMENTO', 'QUIEBRE', 'SUPERVISOR', 'ACTIVIDAD', 'Capataz', 'MM', 'M1', 'M2', 'Ayudante',
              'Soldador']]  # Data frame de Horas Gastadas
