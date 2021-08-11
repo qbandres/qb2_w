@@ -891,7 +891,7 @@ def import_ELECT():
 
 def export():
 
-    nOOCCR = nOOCC[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
+    nOOCCR = nOOCC[['FECHA', 'HHGan', 'Disc']]                                                                            #Filtras las HH Gan
     mOOCCR = mOOCC[['FECHA', 'HHGast', 'Disc']]
 
     nMGR = nMG[['FECHA', 'HHGan', 'Disc']]                                                                              #Filtras las HH Gan
