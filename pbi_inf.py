@@ -253,15 +253,9 @@ def import_OOCC():
     dfe['tc1']=dfe.SUB_ELEMENTO+dfe.QUIEBRE
     dfID['tc1']=dfID.SUB_ELEMENTO+dfID.QUIEBRE
 
-    dfe = dfe.merge(dfID[['tc1','M_TOT']], on='tc1',how='left')  #
-
-    dfe = dfe.merge(dfID[['tc1','H_TOT']], on='tc1',how='left')  #
-
-    dfe = dfe.merge(dfID[['tc1','DESCRIPCION']], on='tc1',how='left')  #
+    dfe = dfe.merge(dfID[['tc1','M_TOT','H_TOT','DESCRIPCION']], on='tc1',how='left')  #
 
     dfe['HHGan']=dfe.Cant*dfe.H_TOT/dfe.M_TOT
-
-
 
     dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date
 
@@ -292,11 +286,16 @@ def import_OOCC():
     mOOCC['Disc']='OOCC'
     dfe['Disc']='OOCC'
 
+    mOOCC.DESCRIPCION.fillna("OTROS",inplace=True)
+    dfe.fillna({'DESCRIPCION':'OTROS'},inplace=True)
+
+
     nOOCC=dfe.copy()
     dfID_OOCC=dfID.copy()
 
     rest_OOCC=mOOCC[mOOCC.CATEGORIA=='HH_RESTR']
     rest_OOCC=rest_OOCC[['FECHA','CATEGORIA','HHGast','Semana','Disc','RESTRICCION']]
+
 
     Widget(root, d_color['fondo'], 1, 1, 140, 13).letra('OOCC')
 
@@ -653,6 +652,7 @@ def import_PIPING():
 
     del nPIPING['TAG']
 
+
     #hhGAN bULK
     dfe["FECHA"] = pd.to_datetime(dfe.FECHA).dt.date  # Conviertes fecha en formato sin horas
     dfe.rename(columns={'AVANCE (metrado diario)': 'CANT', 'QUIEBRE': 'Etapa'},
@@ -677,9 +677,10 @@ def import_PIPING():
     nPIPING = nPIPING.append(dfe)                                                                                       #Agregamos HHGan BUlk a las HH de matriz
     nPIPING.dropna(subset=['HHGan'], inplace=True)                                                                      #Limpiamos ala información
 
+    dflinea['Tipo'] = 'Linea'
+    dfBulk['Tipo'] = 'Linea'
 
-
-    Totcode=pd.concat([dflinea[['FLUIDCODE','DIAMETER','CANT']],dfBulk[['FLUIDCODE','DIAMETER','CANT']]],axis=0)  #Data base de metrados totales
+    Totcode=pd.concat([dflinea[['FLUIDCODE','DIAMETER','CANT','Tipo']],dfBulk[['FLUIDCODE','DIAMETER','CANT','Tipo']]],axis=0)  #Data base de metrados totales
 
     dfs = pd.read_excel(import_file_path, sheet_name='HHGast')                                                          #IMportamos horas gastadas.
 
@@ -711,7 +712,7 @@ def import_PIPING():
     d = 900  # Duration
     winsound.Beep(f, d)
 def import_ELECT():
-    global mELECT, nELECT, rest_pip,sist_ele
+    global mELECT, nELECT, rest_Ele,sist_ele
 
     qgan_alumb = {'Traslado': 0.1, 'Montaje_Conexionado': 0.6, 'Test': 0.2, 'Punch_List': 0.1}  # Quiebres Alumbrado
     qgan_malla = {'Traslado': 0.1, 'Tendido_Conexionado': 0.7, 'Inspeccion_Pruebas': 0.1, 'Punch_List': 0.1}  # Quiebres Malla
@@ -796,7 +797,6 @@ def import_ELECT():
     d_equp.rename(columns={"Ubicación":'sistema1',"Equipo":"sistema2", 'TRASLADO': 'Q1', 'MONTAJE': 'Q2',
                             'NIVELACION': 'Q3', 'PUNCH_LIST': 'Q4', 'Cantidad': 'CANT'},
                    inplace=True)
-    print(d_equp.columns)
 
     nEQU_A, nEQU_B = Masterelect(d_inst, 4, 0.1, 0.1, 0.1, 0.5, 0.15, 0, 'Q2', '1-Traslado', '2-Montaje',
                             '3-Nivelacion', '4-Punch_list', '5-xxxx', '6-xxxx', '2-Montaje').develop()
@@ -826,6 +826,8 @@ def import_ELECT():
     d_hgan_Banco_ductos = d_hgan_Banco_ductos.merge(dfbancoducto[['sistema2', 'RATIO', 'Cantidad']], on='sistema2',
                     how='left')
 
+
+
     d_hgan_al['FACTOR'] = d_hgan_al['Etapa'].map(qgan_alumb)  # Creas columnas según Diccionario
     d_hgan_malla['FACTOR'] = d_hgan_malla['Etapa'].map(qgan_malla)  # Creas columnas según Diccionario
     d_hgan_Banco_ductos['FACTOR'] = d_hgan_Banco_ductos['Etapa'].map(qgan_bcd)  # Creas columnas según Diccionario
@@ -834,7 +836,9 @@ def import_ELECT():
     d_hgan_malla['MLPOND'] = d_hgan_malla.Cantidad * d_hgan_malla.FACTOR
     d_hgan_Banco_ductos['MLPOND'] = d_hgan_Banco_ductos.Cantidad * d_hgan_Banco_ductos.FACTOR
 
+
     d_hgan_al['HHGan'] = d_hgan_al.MLPOND * d_hgan_al.RATIO
+    d_hgan_al[['MLPOND','RATIO','HHGan']].to_excel('ss.xlsx')
     d_hgan_malla['HHGan'] = d_hgan_malla.MLPOND * d_hgan_malla.RATIO
     d_hgan_Banco_ductos['HHGan'] = d_hgan_Banco_ductos.MLPOND * d_hgan_Banco_ductos.RATIO
 
@@ -860,7 +864,9 @@ def import_ELECT():
 
     nELECT['Disc'] = 'ELECT'
     mELECT['Disc'] = 'ELECT'
-    
+
+    mELECT = Restr(mELECT).add()
+
     Widget(root, d_color['fondo'], 1, 1, 168, 130).letra('ELECT')
 
     d_cable['CLASE']='Cable'
@@ -874,9 +880,6 @@ def import_ELECT():
     dfbancoducto['CLASE'] = 'Banco_ductos'
     dfbancoducto.rename(columns={'Cantidad': 'CANT'},inplace=True)
 
-    print(dfmalla.columns)
-    print(dfbancoducto.columns)
-
 
     sist_ele = pd.concat([d_cable[['sistema1', 'sistema2', 'CANT','CLASE']],
                           d_EPC[['sistema1', 'sistema2', 'CANT','CLASE']],d_inst[['sistema1', 'sistema2', 'CANT','CLASE']],
@@ -884,6 +887,9 @@ def import_ELECT():
                           dfmalla[['sistema1', 'sistema2', 'CANT', 'CLASE']],dfbancoducto[['sistema1', 'sistema2', 'CANT','CLASE']]
 
                           ], axis=0)
+    
+    rest_Ele=mELECT[mELECT.CATEGORIA=='HH_RESTR']
+    rest_Ele=rest_Ele[['FECHA','CATEGORIA','HHGast','Semana','Disc','RESTRICCION']]
 
     f = 1999  # Frequency
     d = 900  # Duration
@@ -916,7 +922,8 @@ def export():
 
     GlobGas_t = GlobGas[GlobGas.HHGast > 0]                                                                             #Retiaramos las HH de restricción
 
-    GlobPerso1 = pd.concat([mMG[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']], mPIPING[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],df_Steel_HH[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],mOOCC[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']]], axis=0)
+    GlobPerso1 = pd.concat([mMG[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']], mPIPING[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],
+    df_Steel_HH[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],mOOCC[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']],mELECT[['FECHA','CATEGORIA','HHGast','Semana','NSem','Disc']]], axis=0)
     GlobPerso1 = GlobPerso1[GlobPerso1.HHGast > 0]
 
     tempGlob=GlobPerso1.groupby(['Disc','Semana'])['NSem'].max()
@@ -931,7 +938,7 @@ def export():
                     how='left')
     GlobPerso1['Npers']=GlobPerso1['HHGast']/(11*GlobPerso1.FACT)
 
-    H_Rest=pd.concat([rest_steel,rest_pip,rest_MG],axis=0)
+    H_Rest=pd.concat([rest_steel,rest_pip,rest_MG,rest_Ele,rest_OOCC],axis=0)
 
     H_Rest.dropna(subset=['RESTRICCION'],inplace=True)
 
@@ -952,7 +959,7 @@ def export():
     # Exportar OOCC
     nOOCC.to_excel(writer, sheet_name='OOCC_Gan', index=True)
     mOOCC.to_excel(writer, sheet_name='OOCC_Gas', index=True)
-    dfID_OOCC[['QUIEBRE','SUB_ELEMENTO','M_TOT','H_TOT']].to_excel(writer, sheet_name='MG_AllEquip', index=True)
+    dfID_OOCC[['QUIEBRE','SUB_ELEMENTO','M_TOT','H_TOT','DESCRIPCION']].to_excel(writer, sheet_name='OOCC_SubE', index=True)
 
     # Exportar ELECT
     nELECT.to_excel(writer, sheet_name='ELECT_Gan', index=True)
@@ -1008,5 +1015,3 @@ Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELEC
 Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
-
-
