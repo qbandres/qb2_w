@@ -306,7 +306,7 @@ def import_OOCC():
 
 def import_STEELM():
 
-    global dfv, df_base
+    global dfv, df_base, df_master
 
     ########CODIGO STEEL###############
 
@@ -711,6 +711,31 @@ def import_PIPING():
     f = 1999  # Frequency
     d = 900  # Duration
     winsound.Beep(f, d)
+def Critico():
+    global data1, resum
+
+    import_file_path = filedialog.askopenfilename()
+    data1 = pd.read_excel(import_file_path,sheet_name='data1')         #Importarmos tabla de criticidad.
+    steel = df_master.copy()
+
+    steel['WEIGHT']=steel['WEIGHT']*0.001
+    data1['WEIGHT_R']=data1['WEIGHT_R']*0.001
+
+    data1 = data1.merge(steel[['ID','WEIGHT','DMO']], on='ID',how='left') 
+    print(data1.columns)
+    data1['Instalado']=np.where(data1['DMO'].isnull(), 0, data1.WEIGHT)
+    data1['Saldo']=data1.WEIGHT-data1.Instalado
+
+    del data1['ID']
+    del data1['WEIGHT']
+
+    resum=data1.groupby(['SECTOR']).sum()
+
+    resum["WEIGHT_R"]=resum["WEIGHT_R"].apply(int)
+    resum["Instalado"]=resum["Instalado"].astype(int)
+    resum["Saldo"]=resum["Saldo"].astype(int)
+
+
 def import_ELECT():
     global mELECT, nELECT, rest_Ele,sist_ele
 
@@ -982,6 +1007,10 @@ def export():
     mPIPING.to_excel(writer, sheet_name='PIP_Gas', index=True)
     Totcode.to_excel(writer, sheet_name='PIP_TAG', index=True)
 
+    # Exportar resum
+
+    resum.to_excel(writer, sheet_name='seg_res', index=True)
+    data1.to_excel(writer, sheet_name='seg_data', index=True)
 
     Widget(root, d_color['fondo'], 1, 1, 168, 178).letra('OK')
 
@@ -1012,6 +1041,7 @@ Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
 Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
 Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
 Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
+Widget(root, d_color['boton'], 15, 1, 100, 155).boton('Critico',Critico)
 Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
