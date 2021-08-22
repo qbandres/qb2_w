@@ -13,6 +13,8 @@ import numpy as np
 import winsound
 from datetime import date, timedelta
 
+from pandas.core import groupby
+
 # Definir Colores Nuevos para todos
 d_color = {'fondo': '#BDBDBD', 'boton': 'gray', 'framew': 'gray60', 'letra': '#BDBDBD'}
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -551,6 +553,19 @@ def import_MG():
     rest_MG=mMG[mMG.CATEGORIA=='HH_RESTR']
     rest_MG=rest_MG[['FECHA','CATEGORIA','HHGast','Semana','Disc','RESTRICCION']]
 
+    grup_nMG=nMG[['TAG_EQUIPO','HHGan']].groupby(['TAG_EQUIPO']).sum()
+    grup_nMG.reset_index(inplace=True)
+    print(grup_nMG)
+
+    dfID=dfID.merge(grup_nMG[['TAG_EQUIPO','HHGan']],on='TAG_EQUIPO',how='left')
+
+    dfID.fillna(0,inplace=True)
+
+    print(dfID.columns)
+    print(dfID)
+
+
+
 
     Widget(root, d_color['fondo'], 1, 1, 148, 94).letra('MG310')
 
@@ -734,8 +749,6 @@ def Critico():
     resum["WEIGHT_R"]=resum["WEIGHT_R"].apply(int)
     resum["Instalado"]=resum["Instalado"].astype(int)
     resum["Saldo"]=resum["Saldo"].astype(int)
-
-
 def import_ELECT():
     global mELECT, nELECT, rest_Ele,sist_ele
 
@@ -919,7 +932,6 @@ def import_ELECT():
     f = 1999  # Frequency
     d = 900  # Duration
     winsound.Beep(f, d)
-
 def export():
 
     nOOCCR = nOOCC[['FECHA', 'HHGan', 'Disc']]                                                                            #Filtras las HH Gan
@@ -994,7 +1006,7 @@ def export():
     # Exportar MG
     nMG.to_excel(writer, sheet_name='MG_Gan', index=True)
     mMG.to_excel(writer, sheet_name='MG_Gas', index=True)
-    dfID[['TAG_EQUIPO','HH','ZONA']].to_excel(writer, sheet_name='MG_AllEquip', index=True)
+    dfID[['TAG_EQUIPO','HH','ZONA','HHGan']].to_excel(writer, sheet_name='MG_AllEquip', index=True)
 
     # Exportar Steel
     dfv.to_excel(writer, sheet_name='ST_Gan', index=True)
@@ -1009,8 +1021,8 @@ def export():
 
     # Exportar resum
 
-    resum.to_excel(writer, sheet_name='seg_res', index=True)
-    data1.to_excel(writer, sheet_name='seg_data', index=True)
+    # resum.to_excel(writer, sheet_name='seg_res', index=True)
+    # data1.to_excel(writer, sheet_name='seg_data', index=True)
 
     Widget(root, d_color['fondo'], 1, 1, 168, 178).letra('OK')
 
@@ -1041,7 +1053,7 @@ Widget(root, d_color['boton'], 15, 1, 200, 95).boton('MG', import_MG)
 Widget(root, d_color['boton'], 15, 1, 200, 125).boton('PIPING', import_PIPING)
 Widget(root, d_color['boton'], 15, 1, 200, 10).boton('OOCC',import_OOCC)
 Widget(root, d_color['boton'], 15, 1, 200, 155).boton('ELECTRICIDAD',import_ELECT)
-Widget(root, d_color['boton'], 15, 1, 100, 155).boton('Critico',Critico)
+#Widget(root, d_color['boton'], 15, 1, 100, 155).boton('Critico',Critico)
 Widget(root, d_color['boton'], 15, 1, 200, 195).boton('EXPORTAR',export)
 
 root.mainloop()
